@@ -3,17 +3,17 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Heart, ImagePlus, Sparkles, X } from 'lucide-react';
+import { Check, Copy, Heart, ImagePlus, Share2, Sparkles, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createBirthdayWishLink } from '@/app/actions';
 
 const DEFAULT_MESSAGE = 'Wishing you a day full of love, laughter, cake, and beautiful memories!';
 const DRAFT_STORAGE_KEY = 'birthday-bloom-draft';
 
-type BirthdayDraft = { senderName: string; friendName: string; message: string; photoData: string | null };
+type BirthdayDraft = { senderName: string; friendName: string; message: string; photoData: string | null; generatedSlug: string | null };
 
 function getStoredDraft(): BirthdayDraft {
-  const emptyDraft: BirthdayDraft = { senderName: '', friendName: '', message: DEFAULT_MESSAGE, photoData: null };
+  const emptyDraft: BirthdayDraft = { senderName: '', friendName: '', message: DEFAULT_MESSAGE, photoData: null, generatedSlug: null };
   if (typeof window === 'undefined') return emptyDraft;
   try {
     const savedDraft = window.sessionStorage.getItem(DRAFT_STORAGE_KEY);
@@ -56,16 +56,18 @@ export default function FormSection() {
   const [friendName, setFriendName] = useState(() => getStoredDraft().friendName);
   const [message, setMessage] = useState(() => getStoredDraft().message);
   const [photoData, setPhotoData] = useState<string | null>(() => getStoredDraft().photoData);
+  const [generatedSlug, setGeneratedSlug] = useState<string | null>(() => getStoredDraft().generatedSlug);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     try {
-      window.sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ senderName, friendName, message, photoData }));
+      window.sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ senderName, friendName, message, photoData, generatedSlug }));
     } catch {
       window.sessionStorage.removeItem(DRAFT_STORAGE_KEY);
     }
-  }, [friendName, message, photoData, senderName]);
+  }, [friendName, generatedSlug, message, photoData, senderName]);
 
   const handlePhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget;
@@ -88,8 +90,8 @@ export default function FormSection() {
     setLoading(true);
     try {
       const { slug } = await createBirthdayWishLink({ senderName, friendName, message, photoData: photoData ?? undefined });
+      setGeneratedSlug(slug);
       toast.success('Birthday surprise created!');
-      router.push(`/${slug}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Something went wrong. Please try again.');
     } finally {
@@ -97,16 +99,24 @@ export default function FormSection() {
     }
   };
 
+  const handleCopy = async () => {
+    if (!generatedSlug) return;
+    await navigator.clipboard.writeText(`${window.location.origin}/${generatedSlug}`);
+    setCopied(true);
+    toast.success('Link copied!');
+    window.setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className="relative z-10 w-full max-w-md p-6 sm:p-8 bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_24px_80px_rgba(168,85,247,0.2)] border border-white/80">
-      <form onSubmit={handleSubmit} className="space-y-5">
+      {!generatedSlug ? <form onSubmit={handleSubmit} className="space-y-5">
         <div><label className="block text-sm font-bold mb-2 text-slate-700">Your Name</label><input type="text" required maxLength={30} placeholder="e.g. Rahul" value={senderName} onChange={(event) => setSenderName(event.target.value)} className="w-full px-4 py-3.5 rounded-xl border border-rose-100 bg-white/90 text-slate-800 placeholder:text-slate-400 focus:ring-4 focus:ring-fuchsia-100 focus:border-fuchsia-400 outline-none transition" /></div>
         <div><label className="block text-sm font-bold mb-2 text-slate-700">Birthday Star&apos;s Name</label><input type="text" required maxLength={30} placeholder="e.g. Priya" value={friendName} onChange={(event) => setFriendName(event.target.value)} className="w-full px-4 py-3.5 rounded-xl border border-rose-100 bg-white/90 text-slate-800 placeholder:text-slate-400 focus:ring-4 focus:ring-fuchsia-100 focus:border-fuchsia-400 outline-none transition" /></div>
         <div><label className="block text-sm font-bold mb-2 text-slate-700">Your message</label><textarea required maxLength={500} rows={4} value={message} onChange={(event) => setMessage(event.target.value)} className="w-full resize-none px-4 py-3 rounded-xl border border-rose-100 bg-white/90 text-slate-800 placeholder:text-slate-400 focus:ring-4 focus:ring-fuchsia-100 focus:border-fuchsia-400 outline-none transition" /><p className="mt-1 text-right text-xs text-slate-400">{message.length}/500</p></div>
         <div><label className="block text-sm font-bold mb-2 text-slate-700">Add a photo <span className="font-medium text-slate-400">(optional)</span></label>{photoData ? <div className="relative overflow-hidden rounded-2xl border border-rose-100"><Image src={photoData} alt="Selected birthday memory" width={640} height={352} unoptimized className="h-44 w-full object-cover" /><button type="button" onClick={() => setPhotoData(null)} className="absolute right-2 top-2 rounded-full bg-slate-900/80 p-2 text-white"><X className="h-4 w-4" /></button></div> : <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-fuchsia-200 bg-fuchsia-50/60 px-4 py-7 text-center transition hover:border-fuchsia-400 hover:bg-fuchsia-50"><ImagePlus className="h-7 w-7 text-fuchsia-500" /><span className="mt-2 text-sm font-bold text-fuchsia-700">Choose a favourite photo</span><span className="mt-1 text-xs text-slate-500">Any photo format - converted and resized for sharing</span><input type="file" accept="image/*,.heic,.heif" onChange={handlePhotoChange} className="sr-only" /></label>}</div>
         <button type="submit" disabled={loading} className="w-full py-4 px-6 rounded-2xl font-extrabold text-white bg-gradient-to-r from-fuchsia-600 via-rose-500 to-amber-500 hover:brightness-105 active:scale-[0.98] transition-all shadow-lg shadow-rose-300/60 flex items-center justify-center gap-2 disabled:opacity-50">{loading ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Sparkles className="w-5 h-5" /> Create birthday surprise</>}</button>
         <p className="flex items-center justify-center gap-1.5 text-xs font-medium text-slate-500"><Heart className="w-3.5 h-3.5 fill-rose-400 text-rose-400" /> Personal, playful, and ready to share</p>
-      </form>
+      </form> : <div className="space-y-5 text-center"><div className="p-3 rounded-full bg-emerald-100 text-emerald-600 w-12 h-12 mx-auto flex items-center justify-center"><Check className="w-6 h-6" /></div><h2 className="text-xl font-black text-slate-800">Your birthday surprise is ready!</h2><div className="p-3 bg-rose-50 rounded-xl text-sm text-slate-600 break-all font-mono">{`${window.location.origin}/${generatedSlug}`}</div><div className="flex flex-col gap-3"><button onClick={handleCopy} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition">{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}{copied ? 'Copied!' : 'Copy Link'}</button><a href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Hey ${friendName}! I made a little birthday surprise just for you: ${window.location.origin}/${generatedSlug}`)}`} target="_blank" rel="noopener noreferrer" className="w-full py-3 bg-emerald-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 transition"><Share2 className="w-4 h-4" /> Share on WhatsApp</a><button onClick={() => router.push(`/${generatedSlug}`)} className="w-full py-3 rounded-xl border border-fuchsia-200 bg-white text-fuchsia-700 font-bold hover:bg-fuchsia-50 transition">Preview birthday page</button></div></div>}
     </div>
   );
 }
