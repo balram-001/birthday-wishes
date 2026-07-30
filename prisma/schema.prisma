@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,5 +17,4 @@ model BirthdayWish {
   createdAt  DateTime @default(now())
 
   @@index([slug])
-  @@map("Prank")
 }
