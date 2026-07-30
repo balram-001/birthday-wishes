@@ -1,10 +1,12 @@
 import { notFound } from 'next/navigation';
+import { connection } from 'next/server';
 import ClientBirthdayWishViewer from '@/components/ClientBirthdayWishViewer';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export default async function BirthdayWishPage({ params }: PageProps<'/[slug]'>) {
+  await connection();
   const { slug } = await params;
   const birthdayWish = await prisma.birthdayWish.findUnique({ where: { slug } });
 
