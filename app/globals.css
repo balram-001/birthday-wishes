@@ -37,3 +37,64 @@
 @keyframes float {
   50% { transform: translateY(-18px) translateX(8px); }
 }
+
+.wish-confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -1rem;
+  width: 0.48rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.confetti-piece-0 { background: #ec4899; }
+.confetti-piece-1 { background: #f59e0b; }
+.confetti-piece-2 { background: #a855f7; }
+.confetti-piece-3 { background: #22c55e; }
+.confetti-piece-4 { background: #fb7185; }
+
+.balloon {
+  position: absolute;
+  z-index: 0;
+  width: 3.8rem;
+  height: 4.6rem;
+  border-radius: 50% 50% 45% 45%;
+  opacity: 0.32;
+  animation: balloon-drift 5s ease-in-out infinite;
+}
+
+.balloon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 1px;
+  height: 3.2rem;
+  background: currentColor;
+}
+
+.balloon-pink { top: 6rem; left: 1rem; color: #ec4899; background: #f9a8d4; }
+.balloon-purple { top: 2.3rem; right: 1.2rem; color: #9333ea; background: #d8b4fe; animation-delay: -2s; }
+
+.birthday-gift { animation: gift-glow 1.6s ease-in-out infinite; }
+
+@keyframes confetti-fall {
+  to { transform: translateY(42rem) rotate(580deg); }
+}
+
+@keyframes balloon-drift {
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+@keyframes gift-glow {
+  50% { box-shadow: 0 25px 55px rgba(236, 72, 153, 0.65); }
+}
