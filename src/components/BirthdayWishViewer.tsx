@@ -1,0 +1,23 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { AnimatePresence, motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
+import { CakeSlice, Gift, Heart, PartyPopper, RefreshCw, Sparkles } from 'lucide-react';
+import { getRandomBirthdayWish } from '@/lib/birthdayWishes';
+
+type Props = { senderName: string; friendName: string; message: string | null; photoData: string | null };
+
+export default function BirthdayWishViewer({ senderName, friendName, message, photoData }: Props) {
+  const [isOpening, setIsOpening] = useState(true);
+  const [isOpened, setIsOpened] = useState(false);
+  const [wish, setWish] = useState(message || '');
+
+  useEffect(() => { const timer = window.setTimeout(() => setIsOpening(false), 900); return () => window.clearTimeout(timer); }, []);
+  const celebrate = () => { setIsOpened(true); setWish(message || getRandomBirthdayWish()); confetti({ particleCount: 160, spread: 100, origin: { y: 0.62 }, colors: ['#ec4899', '#a855f7', '#f59e0b', '#fb7185'] }); };
+  const nextWish = () => { setWish(getRandomBirthdayWish()); confetti({ particleCount: 70, spread: 75, origin: { y: 0.68 }, colors: ['#ec4899', '#a855f7', '#f59e0b'] }); };
+
+  if (isOpening) return <div className="relative z-10 flex min-h-[60vh] flex-col items-center justify-center"><div className="text-6xl animate-bounce">🎈</div><p className="mt-5 font-extrabold text-fuchsia-700">A surprise is on its way...</p></div>;
+  return <section className="relative z-10 w-full max-w-lg overflow-hidden rounded-[2.25rem] border border-white/90 bg-white/75 p-6 text-center shadow-[0_30px_100px_rgba(139,92,246,0.25)] backdrop-blur-xl sm:p-10"><div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400" /><div className="absolute -right-9 top-12 h-28 w-28 rounded-full bg-amber-200/60 blur-3xl" /><div className="absolute -left-10 bottom-4 h-32 w-32 rounded-full bg-fuchsia-200/60 blur-3xl" /><div className="relative"><div className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-4 py-2 text-xs font-extrabold tracking-wide text-rose-600"><Heart className="h-3.5 w-3.5 fill-rose-500" /> A birthday surprise from {senderName}</div><p className="mt-7 text-sm font-bold uppercase tracking-[0.2em] text-fuchsia-600">It&apos;s your day</p><h1 className="mt-2 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">Happy Birthday,<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-600 via-rose-500 to-amber-500">{friendName}!</span></h1><AnimatePresence mode="wait">{!isOpened ? <motion.div key="gift" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="mt-8"><motion.button onClick={celebrate} whileHover={{ scale: 1.04, rotate: -2 }} whileTap={{ scale: 0.96 }} className="group mx-auto flex h-36 w-36 items-center justify-center rounded-[2.2rem] bg-gradient-to-br from-fuchsia-500 via-rose-500 to-amber-400 text-white shadow-[0_18px_35px_rgba(236,72,153,0.38)]"><Gift className="h-16 w-16 transition-transform duration-300 group-hover:rotate-12" /></motion.button><p className="mt-6 text-base font-medium leading-relaxed text-slate-600">{senderName} has packed a little bit of birthday magic just for you.</p><button onClick={celebrate} className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-6 py-4 font-extrabold text-white shadow-lg transition hover:bg-slate-800 active:scale-[0.98]"><PartyPopper className="h-5 w-5" /> Open your surprise</button></motion.div> : <motion.div key={wish} initial={{ opacity: 0, y: 18, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.35 }} className="mt-8"><div className="overflow-hidden rounded-[1.75rem] border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-amber-50">{photoData && <Image src={photoData} alt={`A birthday memory for ${friendName}`} width={720} height={512} unoptimized className="h-56 w-full object-cover sm:h-64" />}<div className="p-6 sm:p-8"><CakeSlice className="mx-auto h-9 w-9 text-rose-500" /><p className="mt-4 text-xl font-bold leading-relaxed text-slate-800 sm:text-2xl">“{wish}”</p><div className="mt-6 flex items-center justify-center gap-2 text-sm font-bold text-fuchsia-700"><Sparkles className="h-4 w-4" /> With lots of love, {senderName}</div></div></div>{!message && <button onClick={nextWish} className="mt-6 inline-flex items-center gap-2 rounded-2xl border border-fuchsia-200 bg-white px-5 py-3.5 font-extrabold text-fuchsia-700 transition hover:bg-fuchsia-50 active:scale-[0.98]"><RefreshCw className="h-4 w-4" /> One more wish</button>}</motion.div>}</AnimatePresence></div></section>;
+}

@@ -1,26 +1,39 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    background: #fff7fb;
+    color: #172033;
+    font-family: Arial, Helvetica, sans-serif;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom Utilities for Glassmorphism & Animations */
+.glass-card {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.celebration-page {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(253, 164, 175, 0.45), transparent 28rem),
+    radial-gradient(circle at 85% 85%, rgba(196, 181, 253, 0.52), transparent 30rem),
+    linear-gradient(135deg, #fff8fb 0%, #fff8ed 48%, #f6f1ff 100%);
+}
+
+.orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(2px);
+  opacity: 0.55;
+  animation: float 7s ease-in-out infinite;
+}
+
+.orb-one { width: 10rem; height: 10rem; top: 9%; left: 7%; background: #f9a8d4; }
+.orb-two { width: 7rem; height: 7rem; right: 8%; top: 18%; background: #c4b5fd; animation-delay: -2s; }
+.orb-three { width: 8rem; height: 8rem; bottom: 8%; left: 18%; background: #fcd34d; animation-delay: -4s; }
+
+@keyframes float {
+  50% { transform: translateY(-18px) translateX(8px); }
 }
